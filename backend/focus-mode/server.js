@@ -9,8 +9,13 @@ app.use(cors());
 
 // ✅ Connect to MongoDB using 127.0.0.1 to avoid connection issues
 mongoose.connect("mongodb://127.0.0.1:27017/electron_focus", {})
-  .then(() => console.log("✅ Connected to M1ongoDB"))
+  .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
+
+// Root route to handle base URL requests
+app.get("/", (req, res) => {
+  res.send("Welcome to the Focus Mode API! Use /api/tasks or /api/sessions to interact.");
+});
 
 // Routes
 const taskRoutes = require("./routes/taskRoutes");
