@@ -12,6 +12,6 @@ COPY . .
 # Compile TypeScript code
 RUN npm run build
 
-EXPOSE 5006
+EXPOSE 8080
 
 CMD ["node", "dist/server.js"]
