@@ -13,7 +13,7 @@ connectDB();
 const app = express();
 
 // Set port to 5002
-const PORT = process.env. PORT || 8080;
+const PORT = process.env.PORT || 8080;
 
 // Frontend origin
 const frontendOrigin = process.env.NODE_ENV === 'development' 
