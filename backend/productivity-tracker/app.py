@@ -543,5 +543,5 @@ if __name__ == '__main__':
     tracking_thread.start()
     
     # Launch Flask application
-    logger.info("Starting Flask app on port 5000...")
+    logger.info("Starting Flask app on port 8080...")
     app.run(port=8080, debug=True, threaded=True, host='127.0.0.1')
