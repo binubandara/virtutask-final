@@ -544,4 +544,4 @@ if __name__ == '__main__':
     
     # Launch Flask application
     logger.info("Starting Flask app on port 5000...")
-    app.run(port=5000, debug=True, threaded=True, host='127.0.0.1')
+    app.run(port=8080, debug=True, threaded=True, host='127.0.0.1')
