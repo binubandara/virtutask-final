@@ -1,7 +1,6 @@
 import platform
 import psutil
-import win32gui
-import win32process
+import subprocess
 import re
 
 class WindowTracker:
@@ -15,11 +14,9 @@ class WindowTracker:
             'chrome.exe': 'Google Chrome',
             'firefox.exe': 'Mozilla Firefox',
             'msedge.exe': 'Microsoft Edge',
-            'ApplicationFrameHost.exe:WhatsApp': 'WhatsApp',
             'slack.exe': 'Slack',
             'teams.exe': 'Microsoft Teams',
             'discord.exe': 'Discord',
-            'outlook.exe': 'Microsoft Outlook',
             'notion.exe': 'Notion',
             'rider64.exe': 'JetBrains Rider',
             'pycharm64.exe': 'PyCharm',
@@ -31,31 +28,24 @@ class WindowTracker:
         }
     
     def get_active_window(self):
-        """
-        Retrieve the currently active window's simplified name
-        Supports cross-platform tracking
-        Excludes windows that contain excluded terms
-        """
         system = platform.system()
-        
+
         if system == "Windows":
-            window_info = self._get_windows_active_window()
+            return self._get_windows_active_window()
         elif system == "Darwin":  # macOS
-            window_info = self._get_mac_active_window()
+            return self._get_mac_active_window()
         elif system == "Linux":
-            window_info = self._get_linux_active_window()
+            return self._get_linux_active_window()
         else:
             raise NotImplementedError(f"Unsupported OS: {system}")
-        
-        # Check if window should be excluded
-        for term in self.excluded_terms:
-            if term in window_info:
-                return None  # Return None for excluded windows
-                
-        return window_info
     
     def _get_windows_active_window(self):
-        """Windows-specific window tracking with simplified names"""
+        """
+        Windows-specific window tracking using win32gui, pywinprocess, etc.
+        """
+        import win32gui
+        import win32process
+        
         try:
             hwnd = win32gui.GetForegroundWindow()
             _, pid = win32process.GetWindowThreadProcessId(hwnd)
@@ -84,10 +74,35 @@ class WindowTracker:
         except Exception as e:
             print(f"Windows tracking error: {e}")
             return "Unknown"
+
+    def _get_linux_active_window(self):
+        """
+        Linux-specific window tracking using wmctrl or psutil.
+        """
+        try:
+            # You can also use wmctrl if installed:
+            result = subprocess.run(["wmctrl", "-lG"], stdout=subprocess.PIPE)
+            active_window = result.stdout.decode().splitlines()[0]
+            return active_window.split(None, 3)[-1]
+        except Exception as e:
+            print(f"Linux tracking error: {e}")
+            return "Unknown"
     
+    def _get_mac_active_window(self):
+        """
+        macOS-specific window tracking using AppleScript.
+        """
+        try:
+            script = 'tell application "System Events" to get the title of the front window of (first process whose frontmost is true)'
+            active_window = subprocess.check_output(['osascript', '-e', script]).strip().decode('utf-8')
+            return active_window
+        except Exception as e:
+            print(f"macOS tracking error: {e}")
+            return "Unknown"
+
     def _simplify_title(self, window_title, process_name):
         """
-        Simplify window title to extract the most relevant name
+        Simplify window title to extract the most relevant name.
         
         Examples:
         - "authControllers.js - virtuTask-app - Visual Studio Code" → "virtuTask-app"
@@ -116,13 +131,3 @@ class WindowTracker:
         
         # If no meaningful parts found, return original title or a cleaned version
         return title.strip() or process_name.replace('.exe', '')
-    
-    def _get_mac_active_window(self):
-        """macOS window tracking (placeholder)"""
-        # Implement macOS-specific tracking
-        return "Unknown"
-    
-    def _get_linux_active_window(self):
-        """Linux window tracking (placeholder)"""
-        # Implement Linux-specific tracking
-        return "Unknown"
