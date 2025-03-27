@@ -10,6 +10,7 @@ import logging
 import json
 import zipfile
 from datetime import datetime
+import os
 
 
 
@@ -542,6 +543,9 @@ if __name__ == '__main__':
     tracking_thread = threading.Thread(target=tracker.update_tracking, daemon=True)
     tracking_thread.start()
     
+    # Get port from environment variable, default to 8080 if not set
+    port = int(os.environ.get('PORT', 8080))
+    
     # Launch Flask application
-    logger.info("Starting Flask app on port 8080...")
-    app.run(port=8080, debug=True, threaded=True, host='0.0.0.0')
+    logger.info(f"Starting Flask app on port {port}...")
+    app.run(port=port, debug=False, threaded=True, host='0.0.0.0')
