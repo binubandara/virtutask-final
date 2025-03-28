@@ -1,5 +1,3 @@
-# backend/main.py
-
 # Import necessary libraries for various functionalities
 import os
 import time
@@ -20,6 +18,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import google.generativeai as genai
 from report_generator import ReportGenerator
+from dotenv import load_dotenv
 
 class ProductivityTracker:
     def __init__(self, employee_id=None):
@@ -29,8 +28,20 @@ class ProductivityTracker:
         Args:
             employee_id (str, optional): Unique identifier for the employee. Defaults to None.
         """
-        # MongoDB Connection
-        self.client = pymongo.MongoClient('mongodb://localhost:27017/')
+        # Load environment variables
+        load_dotenv()
+        
+        # MongoDB Connection using environment variable
+        mongodb_uri = os.getenv('MONGODB_URI')
+        if not mongodb_uri:
+            raise ValueError("""
+            MongoDB URI not found! 
+            Please ensure your .env file contains:
+            MONGODB_URI=your_mongodb_connection_string
+            """)
+        
+        # Establish MongoDB connection
+        self.client = pymongo.MongoClient(mongodb_uri)
         self.db = self.client['productivity_tracker']
         self.sessions_collection = self.db['user_sessions']
         self.screenshots_collection = self.db['screenshots']
@@ -51,13 +62,11 @@ class ProductivityTracker:
         # Load Gemini API Key from environment
         api_key = os.getenv('GEMINI_API_KEY')
         if not api_key:
-            # Provide a more informative error
             raise ValueError("""
             Gemini API Key not found! 
             Please:
-            1. Create a .env file in the backend directory
-            2. Add GEMINI_API_KEY=your_actual_key
-            3. Get an API key from Google AI Studio (https://makersuite.google.com/app/apikey)
+            1. Ensure your .env file contains GEMINI_API_KEY=your_actual_key
+            2. Get an API key from Google AI Studio (https://makersuite.google.com/app/apikey)
             """)
         
         genai.configure(api_key=api_key)
