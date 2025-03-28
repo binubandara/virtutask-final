@@ -11,6 +11,7 @@ import json
 import zipfile
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 
 
@@ -33,6 +34,13 @@ CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
 # Initialize the productivity tracker without an employee ID
 tracker = ProductivityTracker()
+
+# Load environment variables
+load_dotenv()
+
+# Retrieve environment variables
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+MONGODB_URI = os.getenv('MONGODB_URI')
 
 @app.route('/verify-token', methods=['POST'])
 def verify_token():
