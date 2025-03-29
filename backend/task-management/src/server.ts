@@ -16,11 +16,15 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-// Configure Socket.IO
+// Define allowed origins
+const allowedOrigins = process.env.CLIENT_URL?.split(',') || ['https://my-react-app-355046145223.us-central1.run.app'];
+
+// Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL?.split(',') || 'https://my-react-app-355046145223.us-central1.run.app',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
   },
   connectionStateRecovery: {
@@ -28,18 +32,34 @@ const io = new Server(httpServer, {
   }
 });
 
-// Middleware
+// CORS middleware for Express - MUST be before routes
 app.use(cors({
-  origin: process.env.CLIENT_URL?.split(',') ||'https://my-react-app-355046145223.us-central1.run.app',
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if(!origin) return callback(null, true);
+    
+    if(allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Options preflight handler for all routes
+app.options('*', cors());
 
 app.use(express.json());
 
 // Database connection
 connectDB();
 
-// Authentication middleware for HTTP routes
+// Authentication middleware for HTTP routes - Apply after CORS
 app.use(authMiddleware);
 
 // Store io instance for HTTP routes
