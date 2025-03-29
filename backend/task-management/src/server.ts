@@ -19,7 +19,7 @@ const httpServer = createServer(app);
 // Configure Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL?.split(',') || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL?.split(',') || 'https://my-react-app-355046145223.us-central1.run.app',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true
   },
@@ -30,7 +30,7 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL?.split(',') ||'http://localhost:5173',
+  origin: process.env.CLIENT_URL?.split(',') ||'https://my-react-app-355046145223.us-central1.run.app',
   credentials: true
 }));
 

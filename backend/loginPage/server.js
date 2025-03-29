@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080;
 
 // CORS configuration with specific origin
 app.use(cors({
-    origin: 'http://localhost:5173', // frontend URL
+    origin: 'https://my-react-app-355046145223.us-central1.run.app', // frontend URL
     credentials: true,               // Allow credentials
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

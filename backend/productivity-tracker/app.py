@@ -30,7 +30,7 @@ app = Flask(__name__)
 app.secret_key = '123VirtuTask'  # Required for session management
 
 # Configure CORS to allow frontend access
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+CORS(app, supports_credentials=True, origins=["https://my-react-app-355046145223.us-central1.run.app"])
 
 # Initialize the productivity tracker without an employee ID
 tracker = ProductivityTracker()

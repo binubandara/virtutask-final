@@ -17,8 +17,8 @@ const PORT = process.env.PORT || 8080;
 
 // Frontend origin
 const frontendOrigin = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5173'  // Vite default port
-  : 'http://localhost:5173'; 
+  ? 'https://my-react-app-355046145223.us-central1.run.app'  // Vite default port
+  : 'https://my-react-app-355046145223.us-central1.run.app'; 
 
 // Configured CORS middleware
 app.use(cors({
