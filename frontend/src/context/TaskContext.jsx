@@ -4,8 +4,8 @@ import axios from "axios";
 // Create the context
 export const TaskContext = createContext();
 
-const API_URL = "http://localhost:5005/api/tasks";
-const FOCUS_API = "http://localhost:5005/api/sessions"; 
+const API_URL = "https://focus-mode-355046145223.us-central1.run.app/api/tasks";
+const FOCUS_API = "https://focus-mode-355046145223.us-central1.run.app/api/sessions"; 
 
 
 export const TaskProvider = ({ children }) => {
@@ -28,7 +28,7 @@ export const TaskProvider = ({ children }) => {
   // Add new task (send to backend)
   const addTask = async (task) => {
     try {
-      const response = await axios.post("http://localhost:5005/api/tasks", task);
+      const response = await axios.post("https://focus-mode-355046145223.us-central1.run.app/api/tasks", task);
       setTasks([...tasks, response.data]);
     } catch (error) {
       console.error("Error adding task:", error.response ? error.response.data : error.message);
@@ -45,7 +45,7 @@ export const TaskProvider = ({ children }) => {
   
       const updatedTask = { ...taskToUpdate, completed: !taskToUpdate.completed };
   
-      await axios.put(`http://localhost:5005/api/tasks/${taskId}`, updatedTask);
+      await axios.put(`https://focus-mode-355046145223.us-central1.run.app/api/tasks/${taskId}`, updatedTask);
       
       setTasks((prevTasks) => prevTasks.map((task) => (task._id === taskId ? updatedTask : task)));
   
@@ -63,7 +63,7 @@ export const TaskProvider = ({ children }) => {
     try {
       console.log("Deleting Task:", taskId);
   
-      await axios.delete(`http://localhost:5005/api/tasks/${taskId}`);
+      await axios.delete(`https://focus-mode-355046145223.us-central1.run.app/api/tasks/${taskId}`);
       
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId)); 
   

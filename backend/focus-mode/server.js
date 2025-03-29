@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 // ✅ Connect to MongoDB using 127.0.0.1 to avoid connection issues
-mongoose.connect("mongodb://127.0.0.1:27017/electron_focus", {})
+mongoose.connect("mongodb+srv://binu20230681:binubandara@virtutask.nmivs.mongodb.net/electron_focus", {})
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 

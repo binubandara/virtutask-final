@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'https://login-page-355046145223.us-central1.run.app';
 
 // Create axios instance with default config
 const apiClient = axios.create({

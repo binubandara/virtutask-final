@@ -63,7 +63,7 @@ def verify_token():
         token = data['token']
 
         # Call external authentication service
-        auth_url = 'http://localhost:5001/api/auth/verify-token'
+        auth_url = 'https://login-page-355046145223.us-central1.run.app/api/auth/verify-token'
         try:
             response = requests.post(auth_url, json={'token': token}, timeout=5)
             response.raise_for_status()  # This will raise an error for non-2xx responses
@@ -129,7 +129,7 @@ def verify_token():
         token = data['token']
 
         # Call external authentication service
-        auth_url = 'http://localhost:5001/api/auth/verify-token'
+        auth_url = 'https://login-page-355046145223.us-central1.run.app/api/auth/verify-token'
         try:
             response = requests.post(auth_url, json={'token': token}, timeout=5)
             response.raise_for_status()  # This will raise an error for non-2xx responses
@@ -201,7 +201,7 @@ def check_authentication():
         
         try:
             # Verify token with external authentication service
-            response = requests.post('http://localhost:5001/api/auth/verify-token', 
+            response = requests.post('https://login-page-355046145223.us-central1.run.app/api/auth/verify-token', 
                                      json={'token': token})
             
             if response.status_code != 200:

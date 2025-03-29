@@ -20,7 +20,7 @@ const Rewards = () => {
           return;
         }
 
-        const gameResponse = await fetch('http://localhost:5006/api/game-time', {
+        const gameResponse = await fetch('https://reward-system-355046145223.us-central1.run.app/api/game-time', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -35,7 +35,7 @@ const Rewards = () => {
           setGameTimeReward(gameData);
         }
 
-        const monthlyResponse = await fetch('http://localhost:5006/api/monthly', {
+        const monthlyResponse = await fetch('https://reward-system-355046145223.us-central1.run.app/api/monthly', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -57,7 +57,7 @@ const Rewards = () => {
   const handleClaimGameTime = async () => {
     try {
       const token = localStorage.getItem('userToken');
-      const response = await fetch('http://localhost:5006/api/createGame', {
+      const response = await fetch('https://reward-system-355046145223.us-central1.run.app/api/createGame', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

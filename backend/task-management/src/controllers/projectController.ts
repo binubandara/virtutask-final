@@ -226,7 +226,7 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-export const USER_SERVICE_URL = 'http://localhost:5001/api/auth';
+export const USER_SERVICE_URL = 'https://login-page-355046145223.us-central1.run.app/api/auth';
 // Search users by name
 export const searchUsersByName = async (req: Request, res: Response): Promise<void> => {
     try {

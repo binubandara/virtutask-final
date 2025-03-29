@@ -13,7 +13,7 @@ app = FastAPI()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-here")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:5001/api/auth/verify-token") #Added AUTH SERVICE URL
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "https://login-page-355046145223.us-central1.run.app/api/auth/verify-token") #Added AUTH SERVICE URL
 
 
 async def verify_token_from_auth_service(token: str) -> Optional[str]:

@@ -63,7 +63,7 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
       const token = localStorage.getItem('userToken');
       
       const response = await axios.get(
-        `http://localhost:5001/api/auth/search?name=${searchValue}`,
+        `https://login-page-355046145223.us-central1.run.app/api/auth/search?name=${searchValue}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

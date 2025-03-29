@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const isDev = process.env.NODE_ENV === 'development';
-const API_BASE_URL = isDev ? 'http://127.0.0.1:5002' : 'http://localhost:5002';
+const API_BASE_URL = isDev ? 'http://127.0.0.1:5002' : 'https://engagement-hub-355046145223.us-central1.run.app/api/engagement-hub';
 
 // Logger helper
 const logger = {

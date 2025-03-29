@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional, Dict
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import asyncio
 import time
 import google.generativeai as genai
@@ -17,7 +17,9 @@ from auth import auth_middleware
 from typing import List, Dict, Optional
 from pydantic import BaseModel
 
-load_dotenv()
+env_path = find_dotenv()
+print(f"Loading .env from: {env_path}")
+load_dotenv(env_path)
 
 app = FastAPI(title="Task Analysis API")
 

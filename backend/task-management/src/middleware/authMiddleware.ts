@@ -21,7 +21,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   const token = authHeader.split(' ')[1];
 
   try {
-    const response = await axios.post('http://localhost:5001/api/auth/verify-token', { token });
+    const response = await axios.post('https://login-page-355046145223.us-central1.run.app/api/auth/verify-token', { token });
 
     console.log('Authentication server response:', response.data); // Log the response data
 

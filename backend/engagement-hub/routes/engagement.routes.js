@@ -16,7 +16,7 @@ const authenticateUser = async (req, res, next) => {
     
     // Verify token with authentication service
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/verify-token', 
+      const response = await axios.post('https://login-page-355046145223.us-central1.run.app/api/auth/verify-token', 
         { token },
         { timeout: 5000 }
       );
@@ -50,7 +50,7 @@ const authenticateUser = async (req, res, next) => {
 const getProductivityScore = async (employeeId, authToken) => {
   try {
     // Make the API request with the authorization header
-    const response = await axios.get(`http://localhost:5000/productivity-score/${employeeId}`, {
+    const response = await axios.get(`https://productivity-tracker-355046145223.us-central1.run.app/productivity-score/${employeeId}`, {
       timeout: 5000,
       headers: {
         'Authorization': `Bearer ${authToken}`

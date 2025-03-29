@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const instance = axios.create({
-  baseURL: 'http://localhost:5001',
+  baseURL: 'https://login-page-355046145223.us-central1.run.app',
   timeout: 10000 // Add timeout to avoid long waits if server is down
 });
 
