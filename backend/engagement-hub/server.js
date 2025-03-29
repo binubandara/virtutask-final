@@ -21,11 +21,13 @@ const frontendOrigin = process.env.NODE_ENV === 'development'
   : 'https://my-react-app-355046145223.us-central1.run.app'; 
 
 // Configured CORS middleware
+const cors = require('cors');
+
 app.use(cors({
-  origin: frontendOrigin,  // Specific origin instead of wildcard '*'
-  credentials: true,       // Allow credentials (cookies, auth headers)
+  origin: 'https://my-react-app-355046145223.us-central1.run.app', // Allow frontend origin
+  credentials: true,  // Allow cookies/auth headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'user-id']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middleware

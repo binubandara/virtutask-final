@@ -30,12 +30,7 @@ app = Flask(__name__)
 app.secret_key = '123VirtuTask'  # Required for session management
 
 # Configure CORS to allow frontend access
-CORS(app, 
-     supports_credentials=True, 
-     origins=["https://my-react-app-355046145223.us-central1.run.app"],
-     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     expose_headers=["Content-Disposition"])
+CORS(app, origins=["https://my-react-app-355046145223.us-central1.run.app"], supports_credentials=True)
 
 # Initialize the productivity tracker without an employee ID
 tracker = ProductivityTracker()
@@ -47,7 +42,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 MONGODB_URI = os.getenv('MONGODB_URI')
 
-@app.route('/verify-token', methods=['POST', 'OPTIONS'])
+@app.route('/verify-token', methods=['POST'])
 def verify_token():
     """
     Verify user authentication token and set employee ID.
@@ -56,15 +51,6 @@ def verify_token():
     Returns success/error based on token verification.
     
     """
-    
-    if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'https://my-react-app-355046145223.us-central1.run.app')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
-    
     try:
         # Ensure request has JSON data
         data = request.get_json(silent=True)
