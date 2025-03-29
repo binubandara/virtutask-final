@@ -53,7 +53,7 @@ const MyProjects = () => {
         const { token } = userData;
         
         // Updated API endpoint
-        const response = await fetch('http://localhost:5004/api/my-projects', {
+        const response = await fetch('https://task-management-355046145223.us-central1.run.app/api/my-projects', {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'

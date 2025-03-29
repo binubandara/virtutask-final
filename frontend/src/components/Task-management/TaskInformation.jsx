@@ -115,7 +115,7 @@ const TaskInformation = ({ task, projectId: propProjectId, onClose, isFromMyProj
     try {
       const taskId = task.task_id;
       const token = localStorage.getItem('userToken');
-      const apiUrl = `http://localhost:5004/api/projects/${projectId}/tasks/${taskId}/assignee-status`;
+      const apiUrl = `https://task-management-355046145223.us-central1.run.app/api/projects/${projectId}/tasks/${taskId}/assignee-status`;
       
       const response = await fetch(apiUrl, {
         method: 'PATCH',
@@ -146,7 +146,7 @@ const TaskInformation = ({ task, projectId: propProjectId, onClose, isFromMyProj
       setIsSavingDescription(true);
       const taskId = task.task_id;
       const token = localStorage.getItem('userToken');
-      const apiUrl = `http://localhost:5004/api/projects/${projectId}/tasks/${taskId}`;
+      const apiUrl = `https://task-management-355046145223.us-central1.run.app/api/projects/${projectId}/tasks/${taskId}`;
       
       // Create the complete task object as expected by the backend
       const updatedTask = {

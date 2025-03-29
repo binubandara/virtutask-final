@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
     if (!token) return;
 
     // Initialize socket with auth token
-    const socketInstance = io('http://localhost:5004', {
+    const socketInstance = io('https://task-management-355046145223.us-central1.run.app', {
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 5,

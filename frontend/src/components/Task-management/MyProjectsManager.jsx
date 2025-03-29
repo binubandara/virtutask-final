@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSocket } from "../../context/SocketContext";
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5004/api';
+const API_URL = 'https://task-management-355046145223.us-central1.run.app/api';
 
 const clockSVG = (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-clock">

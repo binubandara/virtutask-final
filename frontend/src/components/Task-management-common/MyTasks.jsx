@@ -22,7 +22,7 @@ const MyTasks = () => {
     const fetchDropdownTasks = async () => {
       try {
         const token = localStorage.getItem('userToken'); // Retrieve token from localStorage
-        const response = await axios.get('http://localhost:5004/api/my-tasks', {
+        const response = await axios.get('https://task-management-355046145223.us-central1.run.app/api/my-tasks', {
           headers: {
             Authorization: `Bearer ${token}`, // Add the token to the Authorization header
           },
@@ -53,7 +53,7 @@ const MyTasks = () => {
     try {
       const token = localStorage.getItem('userToken');
       const response = await axios.get(
-        `http://localhost:5004/api/projects/${projectId}/tasks/${taskId}/subtasks`,
+        `https://task-management-355046145223.us-central1.run.app/api/projects/${projectId}/tasks/${taskId}/subtasks`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +96,7 @@ const MyTasks = () => {
     try {
       const token = localStorage.getItem('userToken');
       const response = await axios.get(
-        `http://localhost:5004/api/projects/${projectId}/tasks/${taskId}/subtasks/${subtaskId}`,
+        `https://task-management-355046145223.us-central1.run.app/api/projects/${projectId}/tasks/${taskId}/subtasks/${subtaskId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -151,7 +151,7 @@ const MyTasks = () => {
         
         // Then create the subtask in the API
         const response = await axios.post(
-          `http://localhost:5004/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks`,
+          `https://task-management-355046145223.us-central1.run.app/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks`,
           {
             subtask: newTask
           },
@@ -284,7 +284,7 @@ const MyTasks = () => {
       
       const token = localStorage.getItem('userToken');
       const response = await axios.patch(
-        `http://localhost:5004/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks/${subtaskId}`,
+        `https://task-management-355046145223.us-central1.run.app/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks/${subtaskId}`,
         {
           subtask: updatedText
         },
@@ -320,7 +320,7 @@ const MyTasks = () => {
       
       const token = localStorage.getItem('userToken');
       await axios.delete(
-        `http://localhost:5004/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks/${subtaskId}`,
+        `https://task-management-355046145223.us-central1.run.app/api/projects/${selectedProjectId}/tasks/${selectedTask.id}/subtasks/${subtaskId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -398,7 +398,7 @@ const MyTasks = () => {
 
         // POST request to send the message
         const chatResponse = await axios.post(
-          'http://localhost:8000/api/chat',
+          'https://task-breakdown-355046145223.us-central1.run.app/api/chat',
           { user_message: breakdownTask }, // Use the correct field name
           {
             headers: {
@@ -446,7 +446,7 @@ const MyTasks = () => {
       const token = localStorage.getItem('userToken');
       // POST request to analyze the task
       await axios.post(
-        `http://localhost:8000/projects/${selectedProjectId}/tasks/${selectedTask.id}/analyze-task`,
+        `https://task-breakdown-355046145223.us-central1.run.app/projects/${selectedProjectId}/tasks/${selectedTask.id}/analyze-task`,
         {},
         {
           headers: {
@@ -457,7 +457,7 @@ const MyTasks = () => {
 
       // GET request to fetch analysis details
       const response = await axios.get(
-        `http://localhost:8000/api/analysis/${selectedTask.id}`,
+        `https://task-breakdown-355046145223.us-central1.run.app/api/analysis/${selectedTask.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

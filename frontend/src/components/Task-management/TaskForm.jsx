@@ -3,7 +3,7 @@ import './TaskForm.css';
 import axios from 'axios'; // Import axios
 
 // Add API_URL constant
-const API_URL = 'http://localhost:5004/api';
+const API_URL = 'https://task-management-355046145223.us-central1.run.app/api';
 
 const TaskForm = ({ 
   closeForm, 
