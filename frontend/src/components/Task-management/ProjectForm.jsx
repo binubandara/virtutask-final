@@ -1,58 +1,106 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './ProjectForm.css';
+import axios from 'axios';
 
 function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) {
-  // Local storage key for saving form data
-  const STORAGE_KEY = 'project_form_draft';
+  const [formData, setFormData] = useState(initialData ? {
+    ...initialData,
+    members: initialData.members || [] // Keep members as an array
+  } : {
+    projectname: '',
+    department: '',
+    client: '',
+    description: '',
+    startDate: '',
+    dueDate: '',
+    priority: 'medium',
+    members: []
+  });
+  console.log("form")
+  console.log(initialData);
   
-  // Initialize form data from initialData, local storage, or default values
-  const initializeFormData = () => {
-    // If we're editing an existing project, use that data
-    if (initialData) {
-      return {
-        ...initialData,
-        members: initialData.members?.join(', ') || '' // Convert array to string
-      };
-    }
-    
-    // For new projects, try to load draft from local storage
-    if (mode === 'create') {
-      const savedForm = localStorage.getItem(STORAGE_KEY);
-      if (savedForm) {
-        try {
-          return JSON.parse(savedForm);
-        } catch (e) {
-          console.error("Failed to parse saved form data:", e);
-        }
-      }
-    }
-    
-    // Default empty form
-    return {
-      projectname: '',
-      department: '',
-      client: '',
-      description: '',
-      startDate: '',
-      dueDate: '',
-      priority: 'medium',
-      members: ''
-    };
-  };
-
-  const [formData, setFormData] = useState(initializeFormData);
+  const [memberSearch, setMemberSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const [originalData] = useState(initialData || {...formData});
-
-  // Save to local storage whenever form data changes (only in create mode)
+  
+  // Close dropdown when clicking outside
   useEffect(() => {
-    if (mode === 'create') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    }
-  }, [formData, mode]);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleMemberSearch = async (e) => {
+    const searchValue = e.target.value;
+    setMemberSearch(searchValue);
+    
+    if (searchValue.length < 1) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    setShowDropdown(true);
+    
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('userToken');
+      
+      const response = await axios.get(
+        `http://localhost:5001/api/auth/search?name=${searchValue}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error("Error searching for members:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  const addMember = (member) => {
+    // Check if member is already added
+    const isMemberAdded = formData.members.some(m => 
+      typeof m === 'object' ? m.id === member.id : m === member.id
+    );
+    
+    if (!isMemberAdded) {
+      setFormData(prev => ({
+        ...prev,
+        members: [...prev.members, member]
+      }));
+    }
+    
+    setMemberSearch('');
+    setShowDropdown(false);
+  };
+  
+  const removeMember = (username) => {
+    setFormData(prev => ({
+      ...prev,
+      members: prev.members.filter(m => 
+        typeof m === 'object' ? m.username !== username : m !== username
+      )
+    }));
   };
 
   const handlePriorityChange = (level) => {
@@ -62,12 +110,12 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Process members into array
+    // Process members into array of usernames if they're objects
     const processedData = {
       ...formData,
-      members: formData.members 
-        ? formData.members.split(',').map(m => m.trim()).filter(m => m)
-        : []
+      members: formData.members.map(member => 
+        typeof member === 'object' ? member.username : member
+      )
     };
 
     const requiredFields = ['projectname', 'department', 'startDate', 'dueDate'];
@@ -97,20 +145,17 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
     if (mode === 'edit') {
       if (window.confirm('Confirm project changes?')) {
         editProject(processedData);
-        // No need to clear storage in edit mode
       }
     } else {
       addProject(processedData);
-      // Clear the saved draft after successful creation
-      localStorage.removeItem(STORAGE_KEY);
     }
-    
-    closeForm(); // Close the form after successful submission
   };
 
+  // Rest of your functions...
+
   const handleCreateReset = () => {
-    if (window.confirm('Are you sure you want to reset the form? This will clear all entered data.')) {
-      const emptyForm = {
+    if (window.confirm('Are you sure you want to reset the form?')) {
+      setFormData({
         projectname: '',
         department: '',
         client: '',
@@ -118,12 +163,8 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
         startDate: '',
         dueDate: '',
         priority: 'medium',
-        members: ''
-      };
-      
-      setFormData(emptyForm);
-      // Update the local storage with the empty form
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(emptyForm));
+        members: []
+      });
     }
   };
 
@@ -133,43 +174,13 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
     }
   };
 
-  // Add function to clear draft if the form is closed
-  const handleCloseForm = () => {
-    // We don't automatically clear drafts when closing to allow users to come back
-    closeForm();
-  };
-
-  // Add function to discard draft
-  const handleDiscardDraft = () => {
-    if (window.confirm('Discard the saved draft? This cannot be undone.')) {
-      localStorage.removeItem(STORAGE_KEY);
-      setFormData({
-        projectname: '',
-        department: '',
-        client: '',
-        description: '',
-        startDate: '',
-        dueDate: '',
-        priority: 'medium',
-        members: ''
-      });
-    }
-  };
-
-  // Check if we have a saved draft (only in create mode)
-  const hasSavedDraft = mode === 'create' && localStorage.getItem(STORAGE_KEY) !== null;
-
   return (
+    // Rest of the form remains the same until the members section
     <div className="projectform-form-modal">
       <div className="projectform-projects-container" onClick={(e) => e.stopPropagation()}>
         <div className="projectform-modal-header">
           <h1>{mode === 'edit' ? 'Edit Project' : 'Create New Project'}</h1>
-          {hasSavedDraft && mode === 'create' && (
-            <div className="projectform-draft-indicator">
-              Draft Loaded
-            </div>
-          )}
-          <div className="projectform-minus-icon" onClick={handleCloseForm}>
+          <div className="projectform-minus-icon" onClick={closeForm}>
             <svg 
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -276,34 +287,72 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
                 required
               />
                <label htmlFor="members">Members</label>
-              <div className="projectform-members-container">
-              <input 
-                type="text" 
-                name="members" 
-                className="projectform-members-input" 
-                placeholder="Enter member IDs (comma separated)"
-                value={formData.members}
-                onChange={handleChange}
-              />
-              
-              <div className="projectform-svg-member-icon">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  strokeWidth="1" 
-                  stroke="currentColor" 
-                  className="size-6"
-                  width="24" height="24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" 
-                  />
-                </svg>
+              <div className="projectform-members-container" ref={dropdownRef}>
+                <input 
+                  type="text" 
+                  className="projectform-members-input" 
+                  placeholder="Search for members..." 
+                  value={memberSearch}
+                  onChange={handleMemberSearch}
+                  onClick={() => memberSearch && setShowDropdown(true)}
+                />
+                
+                <div className="projectform-svg-member-icon">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1" 
+                    stroke="currentColor" 
+                    width="24" height="24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" 
+                    />
+                  </svg>
+                </div>
+                
+                {/* Dropdown for search results */}
+                {showDropdown && (
+                  <div className="projectform-members-dropdown">
+                    {isSearching && <div className="projectform-dropdown-loading">Loading...</div>}
+                    
+                    {!isSearching && searchResults.length === 0 && (
+                      <div className="projectform-dropdown-no-results">No members found</div>
+                    )}
+                    
+                    {!isSearching && searchResults.map(user => (
+                      <div 
+                        key={user.id} 
+                        className="projectform-dropdown-item"
+                        onClick={() => addMember(user)}
+                      >
+                        {user.username} ({user.email})
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+              
+              {/* Display selected members */}
+              <div className="projectform-selected-members">
+                {formData.members.map((member, index) => (
+                  <div key={index} className="projectform-member-tag">
+                    {typeof member === 'object' 
+                      ? `${member.username || member.name || 'Unknown'} ${member.email ? `(${member.email})` : ''}`
+                      : `Username: ${member}`}
+                    <button 
+                      type="button"
+                      className="projectform-member-remove"
+                      onClick={() => removeMember(typeof member === 'object' ? member.username : member)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -317,24 +366,13 @@ function ProjectForm({ closeForm, addProject, editProject, initialData, mode }) 
                 Original Input
               </button>
             ) : (
-              <>
-                <button 
-                  type="button" 
-                  onClick={handleCreateReset} 
-                  className="projectform-form-btn reset"
-                >
-                  Reset
-                </button>
-                {hasSavedDraft && (
-                  <button 
-                    type="button" 
-                    onClick={handleDiscardDraft} 
-                    className="projectform-form-btn discard"
-                  >
-                    Discard Draft
-                  </button>
-                )}
-              </>
+              <button 
+                type="button" 
+                onClick={handleCreateReset} 
+                className="projectform-form-btn reset"
+              >
+                Reset
+              </button>
             )}
             <button type="submit" className="projectform-form-btn create">
               {mode === 'edit' ? 'Confirm Edit' : 'Create Project'}

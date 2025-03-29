@@ -4,6 +4,11 @@ import TaskForm from './TaskForm';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskInformation from './TaskInformation';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
+
+// API configuration
+const API_URL = 'http://localhost:5004/api';
+const getToken = () => localStorage.getItem('userToken') || '';
 
 const PRIORITY_COLORS = {
   high: '#ff4444',
@@ -11,14 +16,21 @@ const PRIORITY_COLORS = {
   low: '#4CAF50'
 };
 
+// Add this right after the PRIORITY_COLORS definition, around line 13-14
 const STATUS_COLORS = {
   pending: '#f67a15',
   on_hold: '#939698',
   in_progress: '#0d85fd',
-  completed: '#28a46a'
+  completed: '#28a46a',
+  // Add capitalized and spaced versions for API mapping
+  Pending: '#f67a15',
+  
+  In_Progress: '#0d85fd',
+  Completed: '#28a46a'
 };
 const colorPalette = ["#ffc8dd", "#bde0fe", "#a2d2ff", "#94d2bd","#e0b1cb","#adb5bd","#98f5e1","#f79d65","#858ae3","#c2dfe3","#ffccd5","#e8e8e4","#fdffb6","#f1e8b8","#d8e2dc","#fff0f3","#ccff66"];
 
+// Keep the helper functions
 const getMemberColor = (name) => {
   const hash = name.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
   return colorPalette[hash % colorPalette.length];
@@ -53,124 +65,242 @@ const TaskManage = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load projects from localStorage
-  const loadProjects = () => {
-    const saved = localStorage.getItem('projects');
-    return saved ? JSON.parse(saved) : [];
-  };
-
-  // Save projects to localStorage
-  const saveProjects = (updatedProjects) => {
-    localStorage.setItem('projects', JSON.stringify(updatedProjects));
-  };
-
-  useEffect(() => {
-    const projects = loadProjects();
-    const project = projects.find(p => p.id === Number(projectId));
-  
-    if (project) {
-      setCurrentProject({
-        id: project.id,
-        ...project,
-        projectName: project.projectname,
-        startDate: project.startDate,
-        dueDate: project.dueDate,
-        priority: project.priority || 'medium',
-        priorityColor: PRIORITY_COLORS[project.priority] || '#e0e0e0',
-        members: project.members || [],
-        tasks: project.tasks || []
+  console.log(projectId);
+  // Fetch project tasks from API
+  const loadProjectTasks = async () => {
+    try {
+      setIsLoading(true);
+      const token = getToken();
+      const response = await axios.get(`${API_URL}/projects/${projectId}/tasks`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-  
-      // Apply task filtering for My Projects view
-      let filteredTasks = project.tasks || [];
-      if (isFromMyProjects) {
-        filteredTasks = filteredTasks.filter(task => 
-          task.assignees?.toLowerCase() // Plural + case-insensitive
-            .split(',')
-            .map(a => a.trim())
-            .includes('DinayaG') // Lowercase comparison
-        );
-      }
-      setTasks(filteredTasks);
+      console.log("task id",response);
+      return response.data;
+      
+    } catch (error) {
+      console.error('Error fetching project tasks:', error);
+      return [];
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Fetch project details from API
+  const loadProjectDetails = async () => {
+    try {
+      setIsLoading(true);
+      const token = getToken();
+      const response = await axios.get(`${API_URL}/projects/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add task to API
+  const addTaskToApi = async (taskData) => {
+    try {
+      const token = getToken();
+      const response = await axios.post(`${API_URL}/projects/${projectId}/tasks`, taskData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API error adding task:', error);
+      alert('Error adding task. Please try again.');
+      return null;
+    }
+  };
+
+  // // Update task in API
+  // const updateTaskInApi = async (taskData) => {
+  //   console.log("task id",taskData);
+  //   try {
+  //     const token = getToken();
+  //     await axios.patch(`${API_URL}/projects/${projectId}/tasks/${task_id}`, taskData, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //     return true;
+  //   } catch (error) {
+  //     console.error('API error updating task:', error);
+  //     alert('Error updating task. Please try again.');
+  //     return false;
+  //   }
+  // };
+
+  // Delete task from API
+  const deleteTaskFromApi = async (taskId) => {
+    try {
+      const token = getToken();
+      await axios.delete(`${API_URL}/projects/${projectId}/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return true;
+    } catch (error) {
+      console.error('API error deleting task:', error);
+      alert('Error deleting task. Please try again.');
+      return false;
+    }
+  };
+
+  // Load project and task data
+  useEffect(() => {
+    const fetchProjectAndTasks = async () => {
+      setIsLoading(true);
+      const projectData = await loadProjectDetails();
+      const tasksData = await loadProjectTasks();
+      
+      if (projectData) {
+        // Map API project data to your component's format
+        setCurrentProject({
+          id: projectData._id || projectData.project_id,
+          projectName: projectData.name,
+          startDate: new Date(projectData.startDate).toLocaleDateString(),
+          dueDate: new Date(projectData.dueDate).toLocaleDateString(),
+          priority: projectData.priority?.toLowerCase() || 'medium',
+          priorityColor: PRIORITY_COLORS[projectData.priority?.toLowerCase()] || '#e0e0e0',
+          members: projectData.members || [],
+          tasks: tasksData || []
+        });
+      
+        // Process tasks data
+        let processedTasks = tasksData.map(task => ({
+          id: task._id,
+          task_id: task.task_id,
+          taskName: task.name,
+          dueDate: new Date(task.dueDate).toLocaleDateString(),
+          priority: task.priority?.toLowerCase(),
+          status: task.status?.toLowerCase(),
+          assignees: task.assignees.map(a => a.user).join(', '),
+          description: task.description,
+          attachments: task.attachments || [],
+          comments: task.comments || []
+        }));
+        
+        const userDataString = localStorage.getItem('userData');
+    if (!userDataString) {
+      console.error('No user data found');
+      return projects;
+    }
+    
+    const userData = JSON.parse(userDataString);
+    const { username } = userData;
+    // Filter tasks for My Projects view
+        if (isFromMyProjects) {
+          const currentUsername = username; // Replace with actual user ID retrieval
+          processedTasks = processedTasks.filter(task => 
+            task.assignees.includes(currentUsername)
+          );
+        }
+        
+        setTasks(processedTasks);
+      } else {
+        console.error('Project not found:', projectId);
+        navigate('/My-projects-manager');
+      }
+      setIsLoading(false);
+    };
+  
+    fetchProjectAndTasks();
   }, [projectId, navigate, isFromMyProjects]);
 
-  // Updated function to ensure tasks are properly saved to localStorage
-  const updateTasks = (newTasks) => {
-    const projects = loadProjects();
-    const updatedProjects = projects.map(p => {
-      if (p.id === Number(projectId)) {
-        return { 
-          ...p, 
-          tasks: newTasks.map(task => ({
-            ...task,
-            attachments: task.attachments || [],
-            comments: task.comments || []
-          }))
-        };
-      }
-      return p;
-    });
-    
-    saveProjects(updatedProjects);
-    setTasks(newTasks);
+  // Update the updateTasks function to handle the new API structure
+  const updateTasks = async (newTasks) => {
+    try {
+      setTasks(newTasks);
+      return true;
+    } catch (error) {
+      console.error('Failed to update tasks:', error);
+      return false;
+    }
   };
 
-  // Function to add a new task
-  const addTask = (taskData) => {
-    // Create new task with proper structure
-    const newTask = { 
-      id: Date.now(), 
-      ...taskData,
-      attachments: taskData.attachments || [],
-      comments: taskData.comments || []
+  const addTask = async (taskData) => {
+    // Format taskData to match API expectations
+    const apiTaskData = {
+      name: taskData.taskName,
+      dueDate: taskData.dueDate,
+      priority: taskData.priority.charAt(0).toUpperCase() + taskData.priority.slice(1),
+      status: taskData.status.charAt(0).toUpperCase() + taskData.status.slice(1),
+      assignees: taskData.assignees.split(',').map(user => ({
+        user: user.trim(),
+        status: "Pending"
+      })),
+      description: taskData.description || "",
+      project_id: projectId
     };
     
-    const updatedTasks = [...tasks, newTask];
-    updateTasks(updatedTasks);
+    const newTask = await addTaskToApi(apiTaskData);
     
-    // Also update the current project's tasks to keep everything in sync
-    setCurrentProject(prev => ({
-      ...prev,
-      tasks: [...(prev.tasks || []), newTask]
-    }));
-    
-    setShowTaskForm(false);
-  };
-
-  // Function to edit an existing task
-  const editTask = (updatedTask) => {
-    const newTasks = tasks.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    );
-    updateTasks(newTasks);
-    
-    // Also update the selected task if it's currently being viewed
-    if (selectedTask && selectedTask.id === updatedTask.id) {
-      setSelectedTask(updatedTask);
-    }
-    
-    setShowTaskForm(false);
-    setEditingTask(null);
-  };
-
-  // Function to delete a task
-  const deleteTask = (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      const newTasks = tasks.filter(task => task.id !== taskId);
-      updateTasks(newTasks);
+    if (newTask) {
+      const processedTask = {
+        id: newTask._id,
+        task_id: newTask.task_id,
+        taskName: newTask.name,
+        dueDate: new Date(newTask.dueDate).toLocaleDateString(),
+        priority: newTask.priority.toLowerCase(),
+        status: newTask.status.toLowerCase(),
+        assignees: newTask.assignees.map(a => a.user).join(', '),
+        description: newTask.description,
+        attachments: newTask.attachments || []
+      };
       
-      // Close task information panel if the deleted task was being viewed
-      if (selectedTask && selectedTask.id === taskId) {
-        setSelectedTask(null);
+      setTasks(prevTasks => [...prevTasks, processedTask]);
+      setShowTaskForm(false);
+    }
+  };
+
+  const editTask = async (updatedTask) => {
+    // Format the task data for the API
+    const apiTaskData = {
+      task_id: updatedTask.task_id,
+      name: updatedTask.taskName,
+      dueDate: updatedTask.dueDate,
+      priority: updatedTask.priority.charAt(0).toUpperCase() + updatedTask.priority.slice(1),
+      status: updatedTask.status.charAt(0).toUpperCase() + updatedTask.status.slice(1),
+      assignees: updatedTask.assignees.split(',').map(user => ({
+        user: user.trim(),
+        status: "Pending" // You might want to preserve existing status if possible
+      })),
+      description: updatedTask.description || ""
+    };
+    
+    const success = await updateTaskInApi(apiTaskData);
+    
+    if (success) {
+      const newTasks = tasks.map(task => 
+        task.id === updatedTask.id ? updatedTask : task
+      );
+      setTasks(newTasks);
+      setShowTaskForm(false);
+      setEditingTask(null);
+    }
+  };
+
+  const deleteTask = async (taskId) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      const success = await deleteTaskFromApi(task.task_id);
+      
+      if (success) {
+        const newTasks = tasks.filter(task => task.id !== taskId);
+        setTasks(newTasks);
       }
     }
     setSelectedTaskId(null);
   };
   
   const handleBack = () => navigate(-1);
-  
+
   const TaskNameWithEdit = ({ task }) => (
     <td className='tname'>
       <div className="task-name-container">
@@ -219,9 +349,13 @@ const TaskManage = () => {
       </div>
     </td>
   );
-  
+
+  if (isLoading) {
+    return <div className="loading">Loading project data...</div>;
+  }
+
   if (!currentProject) {
-    return <div className="loading">Loading project...</div>;
+    return <div className="loading">Project not found</div>;
   }
 
   return (
@@ -257,8 +391,7 @@ const TaskManage = () => {
         <div className="tasks-header">
           <h2 className="section-title" style={{ 
             borderColor: currentProject.priorityColor,
-            backgroundColor: `${currentProject.priorityColor}20`
-          }}>
+            backgroundColor: `${currentProject.priorityColor}20`}}>
             Tasks
           </h2>
           {!isFromMyProjects && (
@@ -296,7 +429,7 @@ const TaskManage = () => {
                       <div className="taskmanage-assignee-icons-container">
                         {task.assignees?.split(',').slice(0,4).map((assignee, index) => (
                           <MemberIcon 
-                            key={assignee.trim()} 
+                            key={`${task.id}-${assignee.trim()}-${index}`}
                             member={assignee.trim()}
                             style={{ zIndex: 4 - index }}
                           />
@@ -309,15 +442,21 @@ const TaskManage = () => {
                     <td className='task_due_date'>{task.dueDate}</td>
                     <td className='task_levels'>
                       <span className="priority-pill" 
-                        style={{ backgroundColor: PRIORITY_COLORS[task.priority] }}>
-                        {task.priority}
+                        style={{ backgroundColor: PRIORITY_COLORS[task.priority || 'medium'] }}>
+                        {task.priority || 'medium'}
                       </span>
                     </td>
                     <td className='task-levels'>
-                      <span className="status-badge" 
-                        style={{ backgroundColor: STATUS_COLORS[task.status] }}>
-                        {task.status.replace(/_/g, ' ')}
-                      </span>
+                    <span className="status-badge" 
+                  style={{ 
+                    backgroundColor: 
+                    task.status === 'completed' ? '#4CAF50' :
+                    task.status === 'In Progress' ? '#0d85fd' :
+                    task.status === 'pending' ? '#FFA726' :
+                    task.status === 'blocked' ? '#F44336' : '#0d85fd'
+                  }}>
+                  {task.status}
+                  </span>
                     </td>
                   </tr>
                 ))}
@@ -329,15 +468,48 @@ const TaskManage = () => {
       {selectedTask && (
         <TaskInformation 
           task={selectedTask}
-          onClose={() => setSelectedTask(null)}
+          projectId={projectId} // Make sure this is explicitly passed
+          onClose={() => {
+            setSelectedTask(null);
+            // Refresh task data
+            const refreshTasks = async () => {
+              const tasksData = await loadProjectTasks();
+              if (tasksData) {
+                // Process tasks data
+                let processedTasks = tasksData.map(task => ({
+                  id: task._id,
+                  task_id: task.task_id,
+                  taskName: task.name,
+                  dueDate: new Date(task.dueDate).toLocaleDateString(),
+                  priority: task.priority?.toLowerCase(),
+                  status: task.status?.toLowerCase(),
+                  assignees: task.assignees.map(a => a.user).join(', '),
+                  description: task.description,
+                  attachments: task.attachments || [],
+                  comments: task.comments || []
+                }));
+                
+                // Filter tasks for My Projects view if needed
+                if (isFromMyProjects) {
+                  const userDataString = localStorage.getItem('userData');
+                  if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    const { username } = userData;
+                    processedTasks = processedTasks.filter(task => 
+                      task.assignees.includes(username)
+                    );
+                  }
+                }
+                
+                setTasks(processedTasks);
+              }
+            };
+            refreshTasks();
+          }}
           isFromMyProjects={isFromMyProjects}
-          currentUser="DinayaG"
+          currentUser="EMP7876"
           onUpdateTask={(updatedTask) => {
-            const newTasks = tasks.map(t => 
-              t.id === updatedTask.id ? updatedTask : t
-            );
-            updateTasks(newTasks);
-            setSelectedTask(updatedTask);
+            // Your existing update logic
           }}
         />
       )}
