@@ -23,5 +23,7 @@ ENV GEMINI_API_KEY=${GEMINI_API_KEY}
 # Step 8: Expose port 8080 for Cloud Run
 EXPOSE 8080
 
+ENV PORT 8080
+
 # Step 9: Run the FastAPI app with uvicorn
 CMD ["uvicorn", "backend.task-breakdown.main:app", "--host", "0.0.0.0", "--port", "8080"]
